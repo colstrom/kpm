@@ -1,0 +1,12 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config
+data:
+  LOCKPIPE_PATH: /run/forever
+  KPM_LOG_FILTER: trace
+  LOCKPIPE_KPM_FILTER: trace
+  sysctl-fs.inotify.max_queued_events: "<=16384"
+  sysctl-fs.inotify.max_user_instances: ">=128"
+  sysctl-fs.inotify.max_user_watches: "=8193"

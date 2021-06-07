@@ -1,0 +1,55 @@
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: oneshot
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: oneshot
+  template:
+    metadata:
+      name: oneshot
+      labels:
+        app.kubernetes.io/name: oneshot
+    spec:
+      initContainers:
+        - name: oneshot
+          image: docker.io/colstrom/kpm
+          securityContext:
+            privileged: true
+          command:
+            - kpm
+          envFrom:
+            - configMapRef:
+                name: config
+          volumeMounts:
+            - mountPath: /usr/local/bin/kpm
+              name: kpm
+      containers:
+        - name: persist
+          image: docker.io/colstrom/lockpipe
+          command:
+            - lockpipe
+            - read
+          envFrom:
+            - configMapRef:
+                name: config
+          volumeMounts:
+            - mountPath: /usr/local/bin/lockpipe
+              name: lockpipe
+            - mountPath: /usr/local/bin/kpm
+              name: kpm
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - lockpipe
+                  - write
+      volumes:
+        - name: lockpipe
+          hostPath:
+            path: /home/colstrom/playground/rust/lockpipes/target/x86_64-unknown-linux-musl/custom/lockpipe
+        - name: kpm
+          hostPath:
+            path: /home/colstrom/playground/rust/kpm/target/x86_64-unknown-linux-musl/custom/kpm
